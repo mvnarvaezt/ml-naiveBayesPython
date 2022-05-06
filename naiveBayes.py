@@ -5,10 +5,13 @@ import csv
 import os
 import sys
 
+import numpy as np
+
 from sklearn import preprocessing
 from sklearn.naive_bayes import GaussianNB
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, ShuffleSplit
 from sklearn import metrics
+from sklearn.model_selection import cross_val_score
 
 
 def main1():
@@ -50,15 +53,19 @@ def main1():
 	#	Holdout data partitioning into train and test sets (30%), shuffled by default
 	dataTrain, dataTest, cLabelTrain, cLabelTest = train_test_split( data, cLabel, test_size = 0.30, random_state = 0 )
 
-	#	Train and test a gaussian NB model
+	#	Train and test a gaussian NB model (single test)
 	nbGauss = GaussianNB()
 	nbGauss.fit( dataTrain, cLabelTrain )
 	cLabelPred = nbGauss.predict( dataTest )
-
 	met = metrics.accuracy_score(cLabelTest, cLabelPred)
 
-	print( "Accuracy:", met )
+	#	Test with cross validation, hold out, k = 5, 30% to test
+	cvSpliter = ShuffleSplit( n_splits=50, test_size=0.30, random_state=0 )
+	scores = cross_val_score(nbGauss, data, cLabel, cv = cvSpliter)
 
+	print( 'Accuracy of single test: ', met )
+	print( 'Accuracy of cross val test: ', scores)
+	print( 'Mean acc cross val: ', np.mean(scores) )
 
 if __name__ == '__main__':
 	main1()
